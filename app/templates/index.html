@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>{{ title }}</h1>
+            <div class="header-controls">
+                <button id="refresh-btn" class="btn btn-primary">Refresh</button>
+                <span id="last-update" class="last-update">Loading...</span>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Devices</h3>
+                <div class="stat-value" id="total-devices">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Devices</h3>
+                <div class="stat-value" id="active-devices">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Network Status</h3>
+                <div class="stat-value" id="network-status">Checking...</div>
+            </div>
+        </div>
+
+        <div class="devices-section">
+            <h2>Connected Devices</h2>
+            <div id="devices-container">
+                <div class="loading">Loading devices...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
