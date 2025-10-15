@@ -153,9 +153,12 @@ def get_mac_vendor(mac_address):
 @requires_auth
 def index():
     """Main dashboard page"""
+    # Get Pi model information
+    pi_model = get_pi_model()
     return render_template('index.html',
                          title=app.config['DASHBOARD_TITLE'],
-                         refresh_interval=app.config['REFRESH_INTERVAL'])
+                         refresh_interval=app.config['REFRESH_INTERVAL'],
+                         pi_model=pi_model)
 
 @app.route('/api/devices')
 @requires_auth
@@ -240,6 +243,15 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+def get_pi_model():
+    """Get Raspberry Pi model information"""
+    try:
+        with open('/proc/device-tree/model', 'r') as f:
+            model = f.read().strip()
+        return model
+    except (IOError, OSError):
+        return "Unknown"
 
 if __name__ == '__main__':
     app.run(

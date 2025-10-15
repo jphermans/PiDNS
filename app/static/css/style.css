@@ -320,3 +320,97 @@ header h1 {
 .loading {
     animation: pulse 1.5s ease-in-out infinite;
 }
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: var(--bg-color);
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    max-width: 800px;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--secondary-color);
+    padding: 0;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: var(--danger-color);
+}
+
+.modal-body {
+    text-align: center;
+}
+
+#screenshot-image {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    margin-bottom: 20px;
+}
+
+.screenshot-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+/* Screenshot button styles */
+#screenshot-btn {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+#screenshot-btn:hover {
+    background-color: #545b62;
+    transform: translateY(-1px);
+}
+
+/* Responsive modal */
+@media (max-width: 600px) {
+    .modal-content {
+        margin: 5% auto;
+        padding: 15px;
+    }
+    
+    .screenshot-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+}

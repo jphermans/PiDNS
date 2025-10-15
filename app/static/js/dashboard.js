@@ -15,6 +15,10 @@ class PiDNSDashboard {
     init() {
         // Bind event listeners
         document.getElementById('refresh-btn').addEventListener('click', () => this.refreshData());
+        document.getElementById('screenshot-btn').addEventListener('click', () => this.takeScreenshot());
+        document.getElementById('close-screenshot').addEventListener('click', () => this.closeScreenshotModal());
+        document.getElementById('download-screenshot').addEventListener('click', () => this.downloadScreenshot());
+        document.getElementById('new-screenshot').addEventListener('click', () => this.takeScreenshot());
 
         // Initial data load
         this.refreshData();
@@ -75,6 +79,9 @@ class PiDNSDashboard {
             networkStatus.textContent = 'No devices';
             networkStatus.style.color = '#6c757d';
         }
+
+        // Update Pi model display
+        this.updatePiModel();
     }
 
     updateDevices(devices) {
@@ -185,6 +192,89 @@ class PiDNSDashboard {
         } else {
             this.showError('Authentication required to access the dashboard');
         }
+    }
+
+    takeScreenshot() {
+        // Use html2canvas library or browser's built-in capture if available
+        this.captureWebpage().then(screenshot => {
+            if (screenshot) {
+                this.displayScreenshot(screenshot);
+            } else {
+                this.showError('Failed to capture screenshot. Make sure html2canvas library is loaded.');
+            }
+        });
+    }
+
+    async captureWebpage() {
+        // Try to use html2canvas if available
+        if (typeof html2canvas !== 'undefined') {
+            try {
+                const canvas = await html2canvas(document.querySelector('.container'));
+                return canvas.toDataURL('image/png');
+            } catch (error) {
+                console.error('Error capturing with html2canvas:', error);
+                return null;
+            }
+        }
+        
+        // Fallback: Use browser's screen capture API if available
+        if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    preferCurrentTab: true,
+                    video: {
+                        displaySurface: 'browser'
+                    }
+                });
+                
+                // Create video element to capture frame
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+                
+                // Wait for video to load
+                await new Promise(resolve => {
+                    video.onloadedmetadata = resolve;
+                });
+                
+                // Create canvas to draw frame
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                // Stop stream
+                stream.getTracks().forEach(track => track.stop());
+                
+                return canvas.toDataURL('image/png');
+            } catch (error) {
+                console.error('Error capturing with screen API:', error);
+                return null;
+            }
+        }
+        
+        return null;
+    }
+
+    displayScreenshot(screenshot) {
+        const modal = document.getElementById('screenshot-modal');
+        const image = document.getElementById('screenshot-image');
+        image.src = screenshot;
+        modal.style.display = 'block';
+    }
+
+    closeScreenshotModal() {
+        const modal = document.getElementById('screenshot-modal');
+        modal.style.display = 'none';
+    }
+
+    downloadScreenshot() {
+        const image = document.getElementById('screenshot-image');
+        const link = document.createElement('a');
+        link.download = `pidns-dashboard-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+        link.href = image.src;
+        link.click();
     }
 
     escapeHtml(text) {

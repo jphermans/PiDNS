@@ -1,6 +1,6 @@
-# PiDNS - Lightweight DNS and DHCP Server for Raspberry Pi Zero 2 W
+# PiDNS - Lightweight DNS and DHCP Server for Raspberry Pi
 
-PiDNS is a lightweight DNS and DHCP server solution designed specifically for the Raspberry Pi Zero 2 W. It includes a web dashboard that allows you to monitor connected devices, view their IP addresses, and see network information in real-time.
+PiDNS is a lightweight DNS and DHCP server solution designed for various Raspberry Pi models. It includes a web dashboard that allows you to monitor connected devices, view their IP addresses, and see network information in real-time.
 
 ## Features
 
@@ -8,9 +8,11 @@ PiDNS is a lightweight DNS and DHCP server solution designed specifically for th
 - **DHCP Server**: Automatic IP address assignment for network devices
 - **Web Dashboard**: Real-time monitoring of connected devices
 - **Device Information**: IP address, MAC address, hostname, vendor, and connection duration
-- **Resource Optimized**: Designed specifically for Pi Zero 2 W's limited resources
+- **Multi-Pi Support**: Optimized for Pi Zero 2 W, Pi 3/3 B+, and Pi 4/5
+- **Screenshot Functionality**: Capture dashboard screenshots directly from the web interface
 - **Authentication**: Basic authentication to protect dashboard access
 - **Auto-start**: Services start automatically on boot
+- **Responsive Design**: Works on desktop and mobile devices
 
 ## System Requirements
 
@@ -65,6 +67,30 @@ Default credentials:
 - Password: `password`
 
 **Important**: Change the default password immediately after installation!
+
+### 5. Using the Dashboard
+
+The dashboard provides:
+- **Real-time device monitoring**: See all connected devices with their IP, MAC, hostname, and vendor
+- **Network statistics**: View total and active device counts
+- **Pi model detection**: Shows which Raspberry Pi model is running the service
+- **Screenshot functionality**: Click the "Take Screenshot" button to capture the dashboard
+- **Auto-refresh**: Dashboard updates every 30 seconds automatically
+
+#### Dashboard Screenshots
+
+The dashboard includes a built-in screenshot feature that allows you to:
+- Capture the current dashboard view
+- Download screenshots as PNG files
+- Share network status with others
+
+To take a screenshot:
+1. Click the "Take Screenshot" button in the header
+2. The screenshot will appear in a modal window
+3. Click "Download" to save the screenshot to your device
+4. Click "New Screenshot" to capture another view
+
+**Note**: The screenshot feature uses the html2canvas library and may require an internet connection for the first load.
 
 ## Configuration
 
