@@ -26,6 +26,11 @@ PiDNS is a lightweight DNS and DHCP server solution designed specifically for th
 - dnsmasq
 - Systemd
 
+### Supported Raspberry Pi Models
+- **Pi Zero 2 W**: Optimized for limited resources (512MB RAM)
+- **Pi 3/3 B+**: Balanced configuration for moderate resources
+- **Pi 4/5**: Enhanced configuration for more powerful models
+
 ## Quick Start
 
 ### 1. Clone the Repository

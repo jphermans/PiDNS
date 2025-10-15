@@ -35,13 +35,31 @@ if [ "$EUID" -eq 0 ]; then
     exit 1
 fi
 
+# Detect Raspberry Pi model
+PI_MODEL=$(cat /proc/device-tree/model 2>/dev/null || echo "Unknown")
+PI_VERSION=$(cat /proc/cpuinfo | grep "Revision" | awk '{print $3}' | cut -c1-6)
+
 # Check if running on Raspberry Pi
-if ! grep -q "Raspberry Pi" /proc/cpuinfo; then
+if ! echo "$PI_MODEL" | grep -q "Raspberry Pi"; then
     print_warning "This script is optimized for Raspberry Pi. Continue anyway? (y/n)"
     read -r response
     if [ "$response" != "y" ]; then
         exit 1
     fi
+fi
+
+print_status "Detected Raspberry Pi model: $PI_MODEL"
+print_status "Detected Pi version: $PI_VERSION"
+
+# Set configuration based on Pi model
+if echo "$PI_MODEL" | grep -q "Pi 4\|Pi 5"; then
+    # Pi 4/5 have more resources
+    CACHE_SIZE=300
+    DNS_CACHE=300
+else
+    # Pi Zero/2/3 have limited resources
+    CACHE_SIZE=150
+    DNS_CACHE=150
 fi
 
 print_status "Starting PiDNS installation..."
@@ -87,9 +105,14 @@ print_status "Downloading MAC vendor database..."
 mkdir -p data
 curl -s "https://raw.githubusercontent.com/digitalocean/macvendorlookup/main/data/mac-vendors.json" -o data/mac-vendors.json
 
-# Configure dnsmasq
-print_status "Configuring dnsmasq..."
-sudo cp config/dnsmasq.conf /etc/dnsmasq.conf
+# Configure dnsmasq with model-specific settings
+print_status "Configuring dnsmasq for $PI_MODEL..."
+
+# Create temporary config with model-specific settings
+sed "s/CACHE_SIZE/$CACHE_SIZE/g; s/DNS_CACHE/$DNS_CACHE/g" config/dnsmasq.conf > /tmp/dnsmasq.conf
+
+# Install configuration
+sudo cp /tmp/dnsmasq.conf /etc/dnsmasq.conf
 sudo systemctl restart dnsmasq
 sudo systemctl enable dnsmasq
 
