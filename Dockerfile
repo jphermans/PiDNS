@@ -1,4 +1,4 @@
-# PiDNS Dockerfile
+# PiDNS Dockerfile optimized for Apple Silicon
 FROM python:3.11-slim
 
 # Set environment variables
@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
     dnsmasq \
     curl \
     wget \
+    gcc \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # Set work directory
@@ -21,7 +23,8 @@ WORKDIR /app
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt requirements_adblocker.txt ./
-RUN pip install --no-cache-dir -r requirements.txt && \
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir -r requirements_adblocker.txt
 
 # Copy application code
@@ -42,9 +45,13 @@ USER pidns
 # Expose ports
 EXPOSE 8080 8081
 
+# Copy startup script
+COPY scripts/docker-startup.sh /usr/local/bin/docker-startup.sh
+RUN chmod +x /usr/local/bin/docker-startup.sh
+
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8080/api/health || exit 1
 
 # Default command
-CMD ["python", "app/app.py"]
+CMD ["/usr/local/bin/docker-startup.sh", "pidns"]

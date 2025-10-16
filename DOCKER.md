@@ -5,10 +5,27 @@ This guide provides instructions for testing PiDNS in a Docker environment on Ma
 
 ## Prerequisites
 
-- Docker Desktop for Mac (latest version)
+- Docker Desktop for Mac (latest version) with Rosetta 2 emulation enabled
 - Docker Compose
 - At least 4GB of available RAM
 - 2GB of available disk space
+
+### Apple Silicon (M1/M2/M3/M4) Setup
+
+This Docker configuration is optimized for Apple Silicon MacBooks (including M4 Pro) by using native ARM64 architecture for maximum performance. The configuration includes:
+
+1. Native ARM64 Python images for better performance
+2. Optimized package installation with build tools
+3. Enhanced startup scripts with debugging capabilities
+4. Proper environment configuration for Flask applications
+
+No special Rosetta 2 configuration is needed as we're using native ARM64 images.
+
+To verify Docker Desktop is properly configured:
+1. Open Docker Desktop
+2. Go to Settings > General
+3. Ensure "Use virtualization framework" is enabled
+4. Check Resources to ensure adequate CPU and memory allocation (recommended: 8GB+ RAM for M4 Pro)
 
 ## Quick Start
 
@@ -277,8 +294,32 @@ If containers are repeatedly restarting:
    ```bash
    docker stats
    ```
-
-### DNS Issues on macOS
+   
+   ### Apple Silicon Performance
+   
+   This configuration is optimized for native ARM64 performance on Apple Silicon:
+   
+   1. **Resource Allocation**: For M4 Pro, ensure Docker Desktop has at least 8GB RAM allocated
+   2. **Build Performance**: First builds may take longer as packages compile for ARM64
+   3. **Debugging**: Use the enhanced startup script logs to troubleshoot issues:
+      ```bash
+      ./scripts/docker-test.sh logs pidns
+      ./scripts/docker-test.sh logs adblocker
+      ```
+   4. **Platform Verification**: Check containers are running natively:
+      ```bash
+      docker ps --format "table {{.Names}}\t{{.Platform}}"
+      ```
+      Should show `linux/arm64` for all services
+   
+   ### Common Issues on Apple Silicon
+   
+   1. **Build Failures**: If packages fail to build, the startup script includes build tools (gcc, g++)
+   2. **Application Won't Start**: The enhanced startup script provides detailed debugging information
+   3. **Performance**: If performance is slow, increase Docker Desktop memory allocation
+   4. **Database Issues**: The ad-blocker database is automatically initialized on startup
+   
+   ### DNS Issues on macOS
 
 DNS testing might not work as expected on macOS due to system DNS resolver:
 

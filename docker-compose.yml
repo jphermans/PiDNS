@@ -36,6 +36,7 @@ services:
       - PIDNS_PASSWORD=${PIDNS_PASSWORD:-dev-change-me-now!}
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
       - DEBUG=${DEBUG:-True}
+      - FLASK_ENV=development
       - DNSMASQ_LEASE_FILE=/var/lib/misc/dnsmasq.leases
       - MAC_VENDORS_FILE=/app/data/mac-vendors.json
     depends_on:
@@ -61,6 +62,7 @@ services:
       - PIDNS_PASSWORD=${PIDNS_PASSWORD:-dev-change-me-now!}
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
       - DEBUG=${DEBUG:-True}
+      - FLASK_ENV=development
       - DATABASE_URL=sqlite:///data/adblocker/adblocker.db
     depends_on:
       - dnsmasq
