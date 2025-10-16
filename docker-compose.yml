@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Dnsmasq service
+  dnsmasq:
+    image: andyshinn/dnsmasq:2.78
+    container_name: pidns-dnsmasq
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+      - "67:67/udp"
+    volumes:
+      - ./config/dnsmasq-docker.conf:/etc/dnsmasq.conf
+      - dnsmasq-leases:/var/lib/misc
+      - dnsmasq-logs:/var/log/dnsmasq
+    restart: unless-stopped
+    networks:
+      - pidns-network
+    cap_add:
+      - NET_ADMIN
+
+  # Main PiDNS application
+  pidns:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pidns-app
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - dnsmasq-leases:/var/lib/misc
+    environment:
+      - PIDNS_USERNAME=${PIDNS_USERNAME:-admin}
+      - PIDNS_PASSWORD=${PIDNS_PASSWORD:-dev-change-me-now!}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      - DEBUG=${DEBUG:-True}
+      - DNSMASQ_LEASE_FILE=/var/lib/misc/dnsmasq.leases
+      - MAC_VENDORS_FILE=/app/data/mac-vendors.json
+    depends_on:
+      - dnsmasq
+    restart: unless-stopped
+    networks:
+      - pidns-network
+
+  # Ad-Blocker application
+  adblocker:
+    build:
+      context: .
+      dockerfile: Dockerfile.adblocker
+    container_name: pidns-adblocker
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./data/adblocker:/app/data/adblocker
+      - ./logs/adblocker:/app/logs/adblocker
+      - dnsmasq-leases:/var/lib/misc
+    environment:
+      - PIDNS_USERNAME=${PIDNS_USERNAME:-admin}
+      - PIDNS_PASSWORD=${PIDNS_PASSWORD:-dev-change-me-now!}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+      - DEBUG=${DEBUG:-True}
+      - DATABASE_URL=sqlite:///data/adblocker/adblocker.db
+    depends_on:
+      - dnsmasq
+    restart: unless-stopped
+    networks:
+      - pidns-network
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: pidns-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/ssl:/etc/nginx/ssl
+    depends_on:
+      - pidns
+      - adblocker
+    restart: unless-stopped
+    networks:
+      - pidns-network
+    profiles:
+      - with-nginx
+
+volumes:
+  dnsmasq-leases:
+  dnsmasq-logs:
+
+networks:
+  pidns-network:
+    driver: bridge

@@ -1,0 +1,46 @@
+# PiDNS Ad-Blocker Dockerfile
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIDNS_USERNAME=admin \
+    PIDNS_PASSWORD=dev-change-me-now! \
+    SECRET_KEY=dev-secret-key \
+    DEBUG=True
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set work directory
+WORKDIR /app
+
+# Copy requirements and install Python dependencies
+COPY requirements_adblocker.txt ./
+RUN pip install --no-cache-dir -r requirements_adblocker.txt
+
+# Copy ad-blocker application code
+COPY adblocker/ ./adblocker/
+COPY config/ ./config/
+
+# Create necessary directories
+RUN mkdir -p data/adblocker/blocklists logs/adblocker
+
+# Create a non-root user
+RUN useradd -m -u 1000 pidns && \
+    chown -R pidns:pidns /app
+
+USER pidns
+
+# Expose port
+EXPOSE 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8081/health || exit 1
+
+# Default command
+CMD ["python", "adblocker/app.py"]
