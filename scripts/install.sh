@@ -35,12 +35,22 @@ if [ "$EUID" -eq 0 ]; then
     exit 1
 fi
 
-# Detect Raspberry Pi model
+# Detect system environment
+DETECTED_ENV="Unknown"
 PI_MODEL=$(cat /proc/device-tree/model 2>/dev/null || echo "Unknown")
 PI_VERSION=$(cat /proc/cpuinfo | grep "Revision" | awk '{print $3}' | cut -c1-6)
 
-# Check if running on Raspberry Pi
-if ! echo "$PI_MODEL" | grep -q "Raspberry Pi"; then
+# Check if running in LXC container
+if [ -f /proc/1/environ ] && grep -q container=lxc /proc/1/environ; then
+    DETECTED_ENV="LXC Container"
+    print_warning "Running in LXC container - some optimizations may not be available"
+elif [ -f /proc/version ] && grep -q -i microsoft /proc/version; then
+    DETECTED_ENV="WSL"
+    print_warning "Running in Windows Subsystem for Linux - some optimizations may not be available"
+elif echo "$PI_MODEL" | grep -q "Raspberry Pi"; then
+    DETECTED_ENV="Raspberry Pi"
+else
+    DETECTED_ENV="Other Linux"
     print_warning "This script is optimized for Raspberry Pi. Continue anyway? (y/n)"
     read -r response
     if [ "$response" != "y" ]; then
@@ -48,11 +58,19 @@ if ! echo "$PI_MODEL" | grep -q "Raspberry Pi"; then
     fi
 fi
 
-print_status "Detected Raspberry Pi model: $PI_MODEL"
-print_status "Detected Pi version: $PI_VERSION"
+print_status "Detected environment: $DETECTED_ENV"
+if [ "$DETECTED_ENV" = "Raspberry Pi" ]; then
+    print_status "Detected Raspberry Pi model: $PI_MODEL"
+    print_status "Detected Pi version: $PI_VERSION"
+fi
 
-# Set configuration based on Pi model
-if echo "$PI_MODEL" | grep -q "Pi 4\|Pi 5"; then
+# Set configuration based on detected environment
+if [ "$DETECTED_ENV" = "LXC Container" ]; then
+    # LXC containers typically have good resources
+    CACHE_SIZE=500
+    DNS_CACHE=500
+    print_status "Using LXC-optimized cache settings"
+elif echo "$PI_MODEL" | grep -q "Pi 4\|Pi 5"; then
     # Pi 4/5 have more resources
     CACHE_SIZE=300
     DNS_CACHE=300
@@ -109,16 +127,37 @@ print_status "Downloading MAC vendor database..."
 mkdir -p data
 curl -s "https://raw.githubusercontent.com/digitalocean/macvendorlookup/main/data/mac-vendors.json" -o data/mac-vendors.json
 
-# Configure dnsmasq with model-specific settings
-print_status "Configuring dnsmasq for $PI_MODEL..."
+# Configure dnsmasq with environment-specific settings
+if [ "$DETECTED_ENV" = "LXC Container" ]; then
+    print_status "Configuring dnsmasq for LXC container..."
+    CONFIG_FILE="config/dnsmasq-lxc.conf"
+else
+    print_status "Configuring dnsmasq for $DETECTED_ENV..."
+    CONFIG_FILE="config/dnsmasq.conf"
+fi
 
-# Create temporary config with model-specific settings
-sed "s/CACHE_SIZE/$CACHE_SIZE/g; s/DNS_CACHE/$DNS_CACHE/g" config/dnsmasq.conf > /tmp/dnsmasq.conf
+# Create temporary config with environment-specific settings
+sed "s/CACHE_SIZE/$CACHE_SIZE/g; s/DNS_CACHE/$DNS_CACHE/g" "$CONFIG_FILE" > /tmp/dnsmasq.conf
 
 # Install configuration
 sudo cp /tmp/dnsmasq.conf /etc/dnsmasq.conf
-sudo systemctl restart dnsmasq
-sudo systemctl enable dnsmasq
+
+# Handle dnsmasq service based on environment
+if [ "$DETECTED_ENV" = "LXC Container" ]; then
+    # In LXC, dnsmasq might need special handling
+    if systemctl is-active --quiet dnsmasq; then
+        print_status "Restarting existing dnsmasq service..."
+        sudo systemctl restart dnsmasq
+    else
+        print_status "Starting dnsmasq service..."
+        sudo systemctl start dnsmasq
+    fi
+    sudo systemctl enable dnsmasq
+else
+    # Standard Raspberry Pi or other environment
+    sudo systemctl restart dnsmasq
+    sudo systemctl enable dnsmasq
+fi
 
 # Install systemd services
 print_status "Installing systemd services..."
@@ -177,15 +216,38 @@ mkdir -p logs/adblocker
 # Performance optimizations for Pi Zero 2 W
 print_status "Applying performance optimizations..."
 
-# Increase socket buffer sizes
-echo 'net.core.rmem_max = 16777216' | sudo tee -a /etc/sysctl.conf
-echo 'net.core.wmem_max = 16777216' | sudo tee -a /etc/sysctl.conf
+# Function to safely apply sysctl parameters
+apply_sysctl() {
+    local param=$1
+    local value=$2
+    
+    # Check if the parameter exists in /proc/sys
+    local proc_path="/proc/sys/${param//./\/}"
+    if [ -f "$proc_path" ]; then
+        # Check if we have permission to write to it
+        if echo "$value" | sudo tee "$proc_path" >/dev/null 2>&1; then
+            echo "$param = $value" | sudo tee -a /etc/sysctl.conf
+            print_status "Applied: $param = $value"
+        else
+            print_warning "No permission to set $param, skipping..."
+        fi
+    else
+        print_warning "Parameter $param not available in this environment, skipping..."
+    fi
+}
 
-# Configure swap usage for Pi Zero 2 W
-echo 'vm.swappiness = 10' | sudo tee -a /etc/sysctl.conf
+# Apply network optimizations if available
+apply_sysctl "net.core.rmem_max" "16777216"
+apply_sysctl "net.core.wmem_max" "16777216"
 
-# Apply sysctl changes
-sudo sysctl -p
+# Apply swap configuration if available
+apply_sysctl "vm.swappiness" "10"
+
+# Additional optimizations that might work in LXC
+apply_sysctl "net.ipv4.tcp_rmem" "4096 87380 16777216"
+apply_sysctl "net.ipv4.tcp_wmem" "4096 65536 16777216"
+
+print_status "Performance optimizations completed"
 
 # Create startup script
 print_status "Creating startup script..."
