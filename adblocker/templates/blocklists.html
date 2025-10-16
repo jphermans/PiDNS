@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Block Lists - {{ title }}{% endblock %}
+
+{% block content %}
+<body data-page="Blocklists">
+    <div class="blocklists-page">
+        <div class="page-header">
+            <h2>Block Lists Management</h2>
+            <div class="page-actions">
+                <button id="add-blocklist-btn" class="btn btn-primary">Add Block List</button>
+                <button id="update-all-btn" class="btn btn-secondary">Update All</button>
+                <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+            </div>
+        </div>
+
+        <div class="blocklist-controls">
+            <div class="form-group">
+                <label for="category-filter">Filter by Category:</label>
+                <select id="category-filter">
+                    <option value="">All Categories</option>
+                    <option value="ads">Ads</option>
+                    <option value="tracking">Tracking</option>
+                    <option value="malware">Malware</option>
+                    <option value="phishing">Phishing</option>
+                    <option value="social">Social Media</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="status-filter">Filter by Status:</label>
+                <select id="status-filter">
+                    <option value="">All Status</option>
+                    <option value="enabled">Enabled</option>
+                    <option value="disabled">Disabled</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="blocklist-grid" id="blocklist-grid">
+            <div class="loading">Loading block lists...</div>
+        </div>
+    </div>
+
+    <!-- Add Block List Modal -->
+    <div id="add-blocklist-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Block List</h3>
+                <button class="close-btn" id="close-add-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-blocklist-form">
+                    <div class="form-group">
+                        <label for="blocklist-name">Name:</label>
+                        <input type="text" id="blocklist-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="blocklist-url">URL:</label>
+                        <input type="url" id="blocklist-url" name="url" required>
+                        <small>URL to the block list file (supports HTTP/HTTPS)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="blocklist-category">Category:</label>
+                        <select id="blocklist-category" name="category">
+                            <option value="ads">Ads</option>
+                            <option value="tracking">Tracking</option>
+                            <option value="malware">Malware</option>
+                            <option value="phishing">Phishing</option>
+                            <option value="social">Social Media</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="blocklist-description">Description:</label>
+                        <textarea id="blocklist-description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="blocklist-enabled" name="enabled" checked>
+                            Enable immediately
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="save-blocklist-btn" class="btn btn-primary">Save</button>
+                <button id="cancel-add-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Predefined Block Lists Modal -->
+    <div id="predefined-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Predefined Block Lists</h3>
+                <button class="close-btn" id="close-predefined-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="predefined-lists" id="predefined-lists">
+                    <div class="loading">Loading predefined block lists...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="close-predefined-btn" class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/blocklists.js') }}"></script>
+{% endblock %}

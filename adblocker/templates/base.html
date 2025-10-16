@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ title }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>{{ title }}</h1>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="active"{% endif %}>Dashboard</a></li>
+                    <li><a href="{{ url_for('blocklists_page') }}" {% if request.endpoint == 'blocklists_page' %}class="active"{% endif %}>Block Lists</a></li>
+                    <li><a href="{{ url_for('whitelist_page') }}" {% if request.endpoint == 'whitelist_page' %}class="active"{% endif %}>Whitelist</a></li>
+                    <li><a href="{{ url_for('blacklist_page') }}" {% if request.endpoint == 'blacklist_page' %}class="active"{% endif %}>Blacklist</a></li>
+                    <li><a href="{{ url_for('statistics_page') }}" {% if request.endpoint == 'statistics_page' %}class="active"{% endif %}>Statistics</a></li>
+                </ul>
+            </nav>
+            <div class="header-controls">
+                <button id="refresh-btn" class="btn btn-primary">Refresh</button>
+                <span id="last-update" class="last-update">Loading...</span>
+            </div>
+        </header>
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer>
+            <p>&copy; 2023 PiDNS Ad-Blocker. Powered by Flask and dnsmasq.</p>
+        </footer>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Notification container -->
+    <div id="notification-container" class="notification-container"></div>
+
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

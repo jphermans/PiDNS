@@ -1,0 +1,35 @@
+[Unit]
+Description=PiDNS Ad-Blocker Service
+After=network.target dnsmasq.service
+Wants=dnsmasq.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/PiDNS
+Environment=PATH=/home/pi/PiDNS/venv/bin
+Environment=PYTHONPATH=/home/pi/PiDNS
+ExecStart=/home/pi/PiDNS/venv/bin/python -m adblocker.app
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pidns-adblocker
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/pi/PiDNS/data /home/pi/PiDNS/logs /var/log/pidns-adblocker
+
+# Performance settings for Pi Zero 2 W
+# Limit memory usage to 128MB
+MemoryLimit=128M
+# Limit CPU usage
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

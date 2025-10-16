@@ -1,0 +1,32 @@
+# PiDNS Ad-Blocker Requirements
+# Additional dependencies for the ad-blocker functionality
+
+# Core web framework
+Flask==2.3.3
+Werkzeug==2.3.7
+Jinja2==3.1.2
+itsdangerous==2.1.2
+click==8.1.7
+python-dotenv==1.0.0
+
+# Database
+Flask-SQLAlchemy==3.0.5
+SQLAlchemy==2.0.21
+
+# Authentication
+Flask-HTTPAuth==4.7.0
+PyJWT==2.8.0
+
+# HTTP requests
+requests==2.31.0
+
+# Scheduled tasks
+APScheduler==3.10.4
+
+# Configuration
+# Flask-SQLAlchemy==3.0.5  # Uncomment if not already in main requirements
+
+# Development dependencies (optional)
+# pytest==7.4.2
+# pytest-flask==1.2.0
+# coverage==7.3.2

@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - {{ title }}{% endblock %}
+
+{% block content %}
+<body data-page="Statistics">
+    <div class="statistics-page">
+        <div class="page-header">
+            <h2>Ad-Blocker Statistics</h2>
+            <div class="page-actions">
+                <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+                <button id="export-btn" class="btn btn-secondary">Export</button>
+                <button id="clear-btn" class="btn btn-warning">Clear Data</button>
+            </div>
+        </div>
+
+        <div class="stats-overview">
+            <div class="stat-card">
+                <h3>Total Queries</h3>
+                <div class="stat-value" id="total-queries">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Blocked Queries</h3>
+                <div class="stat-value" id="blocked-queries">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Block Rate</h3>
+                <div class="stat-value" id="block-rate">0%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Unique Domains</h3>
+                <div class="stat-value" id="unique-domains">0</div>
+            </div>
+        </div>
+
+        <div class="stats-controls">
+            <div class="form-group">
+                <label for="period-select">Time Period:</label>
+                <select id="period-select">
+                    <option value="1">Last 24 hours</option>
+                    <option value="7" selected>Last 7 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats-tabs">
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="overview">Overview</button>
+                <button class="tab-btn" data-tab="queries">Recent Queries</button>
+                <button class="tab-btn" data-tab="domains">Top Domains</button>
+                <button class="tab-btn" data-tab="clients">Top Clients</button>
+                <button class="tab-btn" data-tab="hourly">Hourly Stats</button>
+            </div>
+            
+            <div class="tab-content">
+                <!-- Overview Tab -->
+                <div class="tab-pane active" id="overview-tab">
+                    <div class="overview-stats">
+                        <div class="overview-section">
+                            <h4>Service Status</h4>
+                            <div class="status-info">
+                                <div class="status-item">
+                                    <span>dnsmasq:</span>
+                                    <span class="status-value" id="dnsmasq-status">Checking...</span>
+                                </div>
+                                <div class="status-item">
+                                    <span>Active Block Lists:</span>
+                                    <span class="status-value" id="active-blocklists">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overview-section">
+                            <h4>Query Statistics</h4>
+                            <div class="query-stats">
+                                <div class="query-stat">
+                                    <span>Unique Clients:</span>
+                                    <span class="stat-value" id="unique-clients">0</span>
+                                </div>
+                                <div class="query-stat">
+                                    <span>Period:</span>
+                                    <span class="stat-value" id="period-days">7 days</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Queries Tab -->
+                    <div class="tab-pane" id="queries-tab">
+                        <div class="table-controls">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="blocked-only-checkbox">
+                                    Show blocked only
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label for="limit-select">Limit:</label>
+                                <select id="limit-select">
+                                    <option value="50" selected>50</option>
+                                    <option value="100">100</option>
+                                    <option value="200">200</option>
+                                    <option value="500">500</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="queries-table-container">
+                            <table class="list-table" id="queries-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Domain</th>
+                                        <th>Client IP</th>
+                                        <th>Type</th>
+                                        <th>Block List</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="queries-tbody">
+                                    <tr>
+                                        <td colspan="5" class="loading">Loading queries...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <div class="pagination" id="queries-pagination">
+                                <button class="btn btn-sm btn-secondary" id="prev-page-btn">Previous</button>
+                                <span class="page-info" id="page-info">Page 1 of 1</span>
+                                <button class="btn btn-sm btn-secondary" id="next-page-btn">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Domains Tab -->
+                    <div class="tab-pane" id="domains-tab">
+                        <div class="table-controls">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="blocked-domains-checkbox">
+                                    Show blocked only
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label for="domains-limit-select">Limit:</label>
+                                <select id="domains-limit-select">
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="domains-table-container">
+                            <table class="list-table" id="domains-table">
+                                <thead>
+                                    <tr>
+                                        <th>Domain</th>
+                                        <th>Count</th>
+                                        <th>Blocked</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="domains-tbody">
+                                    <tr>
+                                        <td colspan="3" class="loading">Loading domains...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Clients Tab -->
+                    <div class="tab-pane" id="clients-tab">
+                        <div class="table-controls">
+                            <div class="form-group">
+                                <label for="clients-limit-select">Limit:</label>
+                                <select id="clients-limit-select">
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="clients-table-container">
+                            <table class="list-table" id="clients-table">
+                                <thead>
+                                    <tr>
+                                        <th>Client IP</th>
+                                        <th>Query Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clients-tbody">
+                                    <tr>
+                                        <td colspan="2" class="loading">Loading clients...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Hourly Stats Tab -->
+                    <div class="tab-pane" id="hourly-tab">
+                        <div class="table-controls">
+                            <div class="form-group">
+                                <label for="hours-select">Hours:</label>
+                                <select id="hours-select">
+                                    <option value="6" selected>6 hours</option>
+                                    <option value="12">12 hours</option>
+                                    <option value="24" selected>24 hours</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="hourly-chart-container">
+                            <canvas id="hourly-chart" width="800" height="400"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Export Statistics</h3>
+                <button class="close-btn" id="close-export-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="export-format">Format:</label>
+                    <select id="export-format">
+                        <option value="json" selected>JSON</option>
+                        <option value="csv">CSV</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="export-days">Days:</label>
+                    <select id="export-days">
+                        <option value="7" selected>7 days</option>
+                        <option value="30">30 days</option>
+                        <option value="90">90 days</option>
+                        <option value="365">1 year</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="export-confirm-btn" class="btn btn-primary">Export</button>
+                <button id="cancel-export-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Data Modal -->
+    <div id="clear-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Clear Statistics Data</h3>
+                <button class="close-btn" id="close-clear-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="clear-days">Clear data older than:</label>
+                    <select id="clear-days">
+                        <option value="7">7 days</option>
+                        <option value="30">30 days</option>
+                        <option value="90">90 days</option>
+                        <option value="">All data</option>
+                    </select>
+                </div>
+                <div class="warning">
+                    <strong>Warning:</strong> This action cannot be undone. Are you sure you want to continue?
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="clear-confirm-btn" class="btn btn-danger">Clear Data</button>
+                <button id="cancel-clear-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/statistics.js') }}"></script>
+{% endblock %}

@@ -100,6 +100,10 @@ print_status "Installing Python dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
+# Install ad-blocker dependencies
+print_status "Installing ad-blocker dependencies..."
+pip install -r requirements_adblocker.txt
+
 # Download MAC vendor database
 print_status "Downloading MAC vendor database..."
 mkdir -p data
@@ -120,6 +124,7 @@ sudo systemctl enable dnsmasq
 print_status "Installing systemd services..."
 sudo cp services/dnsmasq.service /etc/systemd/system/
 sudo cp services/pidns.service /etc/systemd/system/
+sudo cp services/adblocker.service /etc/systemd/system/
 
 # Reload systemd
 sudo systemctl daemon-reload
@@ -129,10 +134,16 @@ print_status "Enabling and starting PiDNS service..."
 sudo systemctl enable pidns.service
 sudo systemctl start pidns.service
 
+# Enable and start ad-blocker service
+print_status "Enabling and starting ad-blocker service..."
+sudo systemctl enable adblocker.service
+sudo systemctl start adblocker.service
+
 # Configure firewall (if ufw is available)
 if command -v ufw &> /dev/null; then
     print_status "Configuring firewall..."
     sudo ufw allow 8080/tcp
+    sudo ufw allow 8081/tcp
     sudo ufw allow 53/udp
     sudo ufw allow 67/udp
 fi
@@ -151,9 +162,17 @@ sudo tee /etc/logrotate.d/pidns > /dev/null << EOF
 }
 EOF
 
-# Create log directory
+# Create log directories
 sudo mkdir -p /var/log/pidns
 sudo chown $SERVICE_USER:$SERVICE_USER /var/log/pidns
+
+sudo mkdir -p /var/log/pidns-adblocker
+sudo chown $SERVICE_USER:$SERVICE_USER /var/log/pidns-adblocker
+
+# Create ad-blocker data directories
+mkdir -p data/adblocker
+mkdir -p data/adblocker/blocklists
+mkdir -p logs/adblocker
 
 # Performance optimizations for Pi Zero 2 W
 print_status "Applying performance optimizations..."
@@ -194,13 +213,22 @@ chmod +x scripts/start.sh
 print_status "Installation completed successfully!"
 echo
 echo "PiDNS Dashboard Information:"
-echo "- Dashboard URL: http://$(hostname -I | awk '{print $1}'):8080"
+echo "- Main Dashboard URL: http://$(hostname -I | awk '{print $1}'):8080"
+echo "- Ad-Blocker Dashboard URL: http://$(hostname -I | awk '{print $1}'):8081"
 echo "- Default username: admin"
 echo "- Default password: password"
 echo
+echo "Ad-Blocker Features:"
+echo "- Manage block lists with predefined categories"
+echo "- Custom whitelist and blacklist with categories and expiration"
+echo "- Real-time statistics and query logging"
+echo "- Block ads, tracking, malware, and more"
+echo
 echo "Important:"
 echo "1. Change the default password by setting PIDNS_PASSWORD environment variable"
-echo "2. Configure your router to use this Pi as DNS server (IP: $(hostname -I | awk '{print $1}'))"
-echo "3. Configure your router to use this Pi as DHCP server if needed"
+echo "2. Access the ad-blocker dashboard at http://$(hostname -I | awk '{print $1}'):8081"
+echo "3. Configure block lists in the ad-blocker dashboard"
+echo "4. Configure your router to use this Pi as DNS server (IP: $(hostname -I | awk '{print $1}'))"
+echo "5. Configure your router to use this Pi as DHCP server if needed"
 echo
 print_warning "Please reboot your system to ensure all services start correctly."

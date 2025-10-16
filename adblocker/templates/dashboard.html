@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Queries</h3>
+            <div class="stat-value" id="total-queries">0</div>
+            <div class="stat-change" id="total-queries-change">Loading...</div>
+        </div>
+        <div class="stat-card">
+            <h3>Blocked Queries</h3>
+            <div class="stat-value" id="blocked-queries">0</div>
+            <div class="stat-change" id="blocked-queries-change">Loading...</div>
+        </div>
+        <div class="stat-card">
+            <h3>Block Percentage</h3>
+            <div class="stat-value" id="block-percentage">0%</div>
+            <div class="stat-change" id="block-percentage-change">Loading...</div>
+        </div>
+        <div class="stat-card">
+            <h3>Unique Domains</h3>
+            <div class="stat-value" id="unique-domains">0</div>
+            <div class="stat-change" id="unique-domains-change">Loading...</div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-section">
+            <h2>System Status</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">Ad-Blocker Service</div>
+                    <div class="status-value" id="adblocker-status">Checking...</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">dnsmasq Service</div>
+                    <div class="status-value" id="dnsmasq-status">Checking...</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Active Block Lists</div>
+                    <div class="status-value" id="active-blocklists">0</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Last Block List Update</div>
+                    <div class="status-value" id="last-blocklist-update">Never</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Recent Blocked Domains</h2>
+            <div class="recent-domains" id="recent-blocked-domains">
+                <div class="loading">Loading recent blocked domains...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-section full-width">
+        <h2>Query Statistics</h2>
+        <div class="chart-container">
+            <canvas id="query-chart" width="400" height="150"></canvas>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-section">
+            <h2>Top Blocked Domains</h2>
+            <div class="top-domains" id="top-blocked-domains">
+                <div class="loading">Loading top blocked domains...</div>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Query Sources</h2>
+            <div class="top-clients" id="top-clients">
+                <div class="loading">Loading top query sources...</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}

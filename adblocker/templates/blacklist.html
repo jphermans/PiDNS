@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Blacklist - {{ title }}{% endblock %}
+
+{% block content %}
+<body data-page="Blacklist">
+    <div class="blacklist-page">
+        <div class="page-header">
+            <h2>Blacklist Management</h2>
+            <div class="page-actions">
+                <button id="add-blacklist-btn" class="btn btn-primary">Add Domain</button>
+                <button id="import-blacklist-btn" class="btn btn-secondary">Import</button>
+                <button id="export-blacklist-btn" class="btn btn-secondary">Export</button>
+                <button id="cleanup-btn" class="btn btn-warning">Cleanup Expired</button>
+                <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+            </div>
+        </div>
+
+        <div class="blacklist-controls">
+            <div class="form-group">
+                <label for="category-filter">Filter by Category:</label>
+                <select id="category-filter">
+                    <option value="">All Categories</option>
+                    <option value="ads">Ads</option>
+                    <option value="tracking">Tracking</option>
+                    <option value="malware">Malware</option>
+                    <option value="phishing">Phishing</option>
+                    <option value="social">Social Media</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="status-filter">Filter by Status:</label>
+                <select id="status-filter">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="expired">Expired</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="search-input">Search:</label>
+                <input type="text" id="search-input" placeholder="Search domains...">
+            </div>
+        </div>
+
+        <div class="blacklist-table-container">
+            <table class="list-table" id="blacklist-table">
+                <thead>
+                    <tr>
+                        <th>Domain</th>
+                        <th>Category</th>
+                        <th>Added</th>
+                        <th>Expires</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="blacklist-tbody">
+                    <tr>
+                        <td colspan="7" class="loading">Loading blacklist entries...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Blacklist Entry Modal -->
+    <div id="blacklist-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Blacklist Entry</h3>
+                <button class="close-btn" id="close-blacklist-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="blacklist-form">
+                    <input type="hidden" id="entry-id" name="id">
+                    
+                    <div class="form-group">
+                        <label for="domain-input">Domain:</label>
+                        <input type="text" id="domain-input" name="domain" required>
+                        <small>Domain name to blacklist (e.g., example.com)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category-input">Category:</label>
+                        <select id="category-input" name="category">
+                            <option value="ads">Ads</option>
+                            <option value="tracking">Tracking</option>
+                            <option value="malware">Malware</option>
+                            <option value="phishing">Phishing</option>
+                            <option value="social">Social Media</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expires-input">Expires:</label>
+                        <input type="datetime-local" id="expires-input" name="expires_at">
+                        <small>Leave empty for no expiration</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes-input">Notes:</label>
+                        <textarea id="notes-input" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="save-blacklist-btn" class="btn btn-primary">Save</button>
+                <button id="cancel-blacklist-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Blacklist Modal -->
+    <div id="import-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Import Blacklist Entries</h3>
+                <button class="close-btn" id="close-import-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="import-file">Upload File:</label>
+                    <input type="file" id="import-file" accept=".txt,.csv,.json">
+                    <small>Supported formats: TXT, CSV, JSON</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="import-data">Or paste entries:</label>
+                    <textarea id="import-data" rows="10" placeholder="Enter domains, one per line"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="import-category">Default Category:</label>
+                    <select id="import-category">
+                        <option value="ads">Ads</option>
+                        <option value="tracking">Tracking</option>
+                        <option value="malware">Malware</option>
+                        <option value="phishing">Phishing</option>
+                        <option value="social">Social Media</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                
+                <div class="import-preview" id="import-preview">
+                    <h4>Preview:</h4>
+                    <div id="preview-content">No entries to preview</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="import-blacklist-confirm-btn" class="btn btn-primary">Import</button>
+                <button id="cancel-import-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/blacklist.js') }}"></script>
+{% endblock %}
