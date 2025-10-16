@@ -7,6 +7,7 @@ A lightweight web dashboard for monitoring DNS and DHCP services on Raspberry Pi
 import os
 import json
 import time
+import hmac
 from datetime import datetime, timedelta
 from pathlib import Path
 from flask import Flask, render_template, jsonify, request, session, redirect, url_for
@@ -17,6 +18,68 @@ from config.flask_config import get_config
 app = Flask(__name__)
 config_class = get_config()
 app.config.from_object(config_class)
+
+# Security validation for basic authentication credentials
+def validate_basic_auth_config():
+    """Ensure basic authentication credentials are defined and sufficiently strong."""
+    username = app.config.get('BASIC_AUTH_USERNAME')
+    password = app.config.get('BASIC_AUTH_PASSWORD')
+
+    if not username or not password:
+        raise RuntimeError(
+            "Basic authentication credentials are not configured. "
+            "Set the PIDNS_USERNAME and PIDNS_PASSWORD environment variables."
+        )
+
+    weak_usernames = {"admin", "root", "user", "pidns"}
+    weak_passwords = {
+        "password",
+        "admin",
+        "changeme",
+        "pidns",
+        "123456",
+    }
+
+    if username.lower() in weak_usernames:
+        raise RuntimeError("The configured basic authentication username is too common. Choose a unique username.")
+
+    if len(password) < 12 or password.lower() in weak_passwords:
+        raise RuntimeError(
+            "The configured basic authentication password is too weak. "
+            "Use a password with at least 12 characters that is not a common default."
+        )
+
+    if password.lower() == "dev-change-me-now!":
+        if not app.config.get('DEBUG'):
+            raise RuntimeError(
+                "The development default password cannot be used when DEBUG is disabled. "
+                "Update PIDNS_PASSWORD to a unique, strong value."
+            )
+        app.logger.warning(
+            "The development default password is in use. Update PIDNS_PASSWORD to improve security."
+        )
+
+
+validate_basic_auth_config()
+
+
+def validate_secret_key():
+    """Ensure the Flask secret key is set appropriately for the active environment."""
+    secret_key = app.config.get('SECRET_KEY')
+    if app.config.get('DEBUG'):
+        if not secret_key or secret_key == 'dev-secret-key':
+            app.logger.warning(
+                "The development SECRET_KEY is in use. Set SECRET_KEY to a unique value before deploying."
+            )
+        return
+
+    if not secret_key or len(secret_key) < 16:
+        raise RuntimeError(
+            "SECRET_KEY must be set to a unique value of at least 16 characters when DEBUG is disabled."
+        )
+
+
+validate_secret_key()
 
 # Global variables for caching
 lease_cache = {}
@@ -35,8 +98,16 @@ def requires_auth(f):
 
 def check_auth(username, password):
     """Check if username and password are correct"""
-    return (username == app.config['BASIC_AUTH_USERNAME'] and
-            password == app.config['BASIC_AUTH_PASSWORD'])
+    stored_username = app.config.get('BASIC_AUTH_USERNAME')
+    stored_password = app.config.get('BASIC_AUTH_PASSWORD')
+
+    if stored_username is None or stored_password is None:
+        return False
+
+    return (
+        hmac.compare_digest(username, stored_username)
+        and hmac.compare_digest(password, stored_password)
+    )
 
 def authenticate():
     """Send authentication response"""

@@ -11,7 +11,13 @@
 <body>
     <div class="container">
         <header>
-            <h1>{{ title }}</h1>
+            <div class="branding">
+                <img src="{{ url_for('static', filename='images/pidns-logo.svg') }}" alt="PiDNS logo" class="branding-logo" loading="lazy">
+                <div class="branding-text">
+                    <h1>{{ title }}</h1>
+                    <p class="tagline">Secure visibility for your Raspberry Pi network</p>
+                </div>
+            </div>
             <div class="header-controls">
                 <button id="refresh-btn" class="btn btn-primary">Refresh</button>
                 <button id="screenshot-btn" class="btn btn-secondary">Take Screenshot</button>
