@@ -139,24 +139,90 @@ fi
 # Create temporary config with environment-specific settings
 sed "s/CACHE_SIZE/$CACHE_SIZE/g; s/DNS_CACHE/$DNS_CACHE/g" "$CONFIG_FILE" > /tmp/dnsmasq.conf
 
+# Backup original config
+if [ -f /etc/dnsmasq.conf ]; then
+    sudo cp /etc/dnsmasq.conf /etc/dnsmasq.conf.backup
+fi
+
 # Install configuration
 sudo cp /tmp/dnsmasq.conf /etc/dnsmasq.conf
 
-# Handle dnsmasq service based on environment
-if [ "$DETECTED_ENV" = "LXC Container" ]; then
-    # In LXC, dnsmasq might need special handling
-    if systemctl is-active --quiet dnsmasq; then
-        print_status "Restarting existing dnsmasq service..."
-        sudo systemctl restart dnsmasq
-    else
-        print_status "Starting dnsmasq service..."
-        sudo systemctl start dnsmasq
-    fi
-    sudo systemctl enable dnsmasq
+# Test dnsmasq configuration before restarting service
+print_status "Testing dnsmasq configuration..."
+if sudo dnsmasq --test --conf-file=/etc/dnsmasq.conf; then
+    print_status "✓ dnsmasq configuration is valid"
 else
-    # Standard Raspberry Pi or other environment
-    sudo systemctl restart dnsmasq
+    print_error "✗ dnsmasq configuration has errors"
+    print_status "Showing configuration:"
+    cat /tmp/dnsmasq.conf
+    exit 1
+fi
+
+# Handle dnsmasq service based on environment
+print_status "Starting dnsmasq service..."
+
+# Stop any existing dnsmasq processes
+sudo pkill dnsmasq 2>/dev/null || true
+sleep 2
+
+# Try to start dnsmasq service
+if sudo systemctl start dnsmasq; then
+    print_status "✓ dnsmasq service started successfully"
     sudo systemctl enable dnsmasq
+    
+    # Verify dnsmasq is running
+    sleep 2
+    if systemctl is-active --quiet dnsmasq; then
+        print_status "✓ dnsmasq service is active"
+    else
+        print_warning "dnsmasq service started but not reporting as active"
+        print_status "Checking dnsmasq process..."
+        if pgrep dnsmasq > /dev/null; then
+            print_status "✓ dnsmasq process is running"
+        else
+            print_error "✗ dnsmasq process is not running"
+            print_status "Showing dnsmasq service status:"
+            sudo systemctl status dnsmasq --no-pager || true
+            print_status "Showing dnsmasq logs:"
+            sudo journalctl -u dnsmasq --no-pager -n 20 || true
+        fi
+    fi
+else
+    print_error "✗ Failed to start dnsmasq service with current configuration"
+    print_status "Showing dnsmasq service status:"
+    sudo systemctl status dnsmasq --no-pager || true
+    print_status "Showing dnsmasq logs:"
+    sudo journalctl -u dnsmasq --no-pager -n 20 || true
+    
+    # Try minimal configuration as fallback
+    print_warning "Attempting to use minimal dnsmasq configuration..."
+    if [ -f config/dnsmasq-minimal.conf ]; then
+        sudo cp config/dnsmasq-minimal.conf /etc/dnsmasq.conf
+        print_status "Testing minimal dnsmasq configuration..."
+        if sudo dnsmasq --test --conf-file=/etc/dnsmasq.conf; then
+            print_status "✓ Minimal dnsmasq configuration is valid"
+            if sudo systemctl start dnsmasq; then
+                print_status "✓ dnsmasq service started with minimal configuration"
+                sudo systemctl enable dnsmasq
+            else
+                print_error "✗ Failed to start dnsmasq even with minimal configuration"
+            fi
+        else
+            print_error "✗ Minimal dnsmasq configuration is invalid"
+        fi
+    fi
+    
+    # If service still fails, try to start dnsmasq directly
+    if ! systemctl is-active --quiet dnsmasq; then
+        print_warning "Attempting to start dnsmasq directly..."
+        if sudo dnsmasq --conf-file=/etc/dnsmasq.conf; then
+            print_status "✓ dnsmasq started directly"
+        else
+            print_error "✗ Failed to start dnsmasq directly"
+            print_warning "PiDNS will continue but DNS functionality will be limited"
+            print_status "You may need to configure dnsmasq manually for your environment"
+        fi
+    fi
 fi
 
 # Install systemd services
