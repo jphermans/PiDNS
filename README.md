@@ -1,117 +1,118 @@
-# PiDNS - Lightweight DNS and DHCP Server for Raspberry Pi
+# PiDNS 🔐📡
 
-![PiDNS Logo](https://github.com/yourusername/PiDNS/raw/main/docs/images/pidns-logo.png)
+<p align="center">
+  <img src="app/static/images/pidns-logo.svg" alt="PiDNS Logo" width="220" />
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python Version](https://img.shields.io/badge/python-3.7%2B-blue.svg)](https://www.python.org/downloads/)
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
-[![Podman](https://img.shields.io/badge/podman-ready-blue.svg)](https://podman.io/)
-[![LXC](https://img.shields.io/badge/lxc-ready-blue.svg)](https://linuxcontainers.org/)
+<p align="center">
+  <em>Secure, lightweight DNS and DHCP services with a friendly dashboard for Raspberry Pi and beyond.</em>
+</p>
 
-PiDNS is a lightweight, easy-to-use DNS and DHCP server solution designed for Raspberry Pi and other low-resource devices. It provides a web-based dashboard for monitoring and managing network devices, with support for ad-blocking capabilities.
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8%2B-blue.svg" alt="Python 3.8+"></a>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/docker-ready-0d6efd.svg" alt="Docker Ready"></a>
+  <a href="https://podman.io/"><img src="https://img.shields.io/badge/podman-ready-6f42c1.svg" alt="Podman Ready"></a>
+  <a href="https://linuxcontainers.org/"><img src="https://img.shields.io/badge/lxc-ready-20c997.svg" alt="LXC Ready"></a>
+</p>
 
-## Features
+---
 
-- **DNS and DHCP Server**: Provides DNS and DHCP services for local networks
-- **Web Dashboard**: User-friendly web interface for monitoring and management
-- **Device Monitoring**: Real-time monitoring of connected devices
-- **Ad-blocking**: Built-in ad-blocking capabilities
-- **Container Support**: Support for Docker, Podman, and LXC containers
-- **Multi-Device Support**: Optimized for various Raspberry Pi models and PCs
-- **Resource Optimization**: Configurable resource usage based on device capabilities
+## 🌈 Overview
 
-## Supported Devices
+PiDNS is a vibrant yet low-footprint DNS and DHCP server toolkit designed with the Raspberry Pi Zero 2 W in mind. The bundled Flask dashboard delivers real-time visibility into your network, optional ad blocking, and easy integration with containerized environments.
 
-- **Raspberry Pi Zero W** (512MB RAM, 1-core CPU)
-- **Raspberry Pi Zero 2W** (512MB RAM, 1-core CPU)
-- **Raspberry Pi 3** (1GB RAM, 4-core CPU)
-- **Raspberry Pi 4** (2-8GB RAM, 4-core CPU)
-- **Raspberry Pi 5** (4-8GB RAM, 4-core CPU)
-- **Low-Resource PC** (≤1GB RAM, ≤2 cores)
-- **Standard PC** (>1GB RAM, >2 cores)
+## ✨ Features
 
-## Supported Container Runtimes
+- 🛡️ **Secure Dashboard** – Password-protected interface with enforced strong credentials.
+- 📊 **Live Device Monitoring** – Real-time device list with vendor lookup and connection details.
+- 🧠 **Smart Caching** – Lightweight parsing of `dnsmasq` leases for speedy updates.
+- 📦 **Container Friendly** – First-class support for Docker, Podman, and LXC deployments.
+- 🧽 **Ad-blocking Ready** – Integrate with your preferred blocklists to keep the web clean.
+- ⚙️ **Resource Tuned** – Crafted for low-memory boards yet scalable to larger systems.
 
-- **Docker**: Most popular container platform with wide community support
-- **Podman**: Daemonless, rootless containers with better security
-- **LXC**: Lightweight OS-level virtualization with better performance
-- **None**: Install directly on the host system without containers
+## 🧭 Supported Hardware
 
-## Quick Start
+| Device | Recommended Specs |
+| ------ | ----------------- |
+| 🍓 Raspberry Pi Zero W | 512 MB RAM · 1 core |
+| 🍓 Raspberry Pi Zero 2 W | 512 MB RAM · 1 core |
+| 🍓 Raspberry Pi 3 | 1 GB RAM · 4 cores |
+| 🍓 Raspberry Pi 4 | 2–8 GB RAM · 4 cores |
+| 🍓 Raspberry Pi 5 | 4–8 GB RAM · 4 cores |
+| 💻 Low-resource PC | ≤1 GB RAM · ≤2 cores |
+| 🖥️ Standard PC | >1 GB RAM · >2 cores |
 
-### Prerequisites
+## 🚀 Quick Start
 
-- Raspberry Pi OS (formerly Raspbian) or Debian-based Linux distribution
-- Python 3.7 or higher
-- Minimum 512MB RAM (1GB recommended)
-- Minimum 4GB free storage (8GB recommended)
-- Ethernet or Wi-Fi connection
+### 1. Prepare the Environment
 
-### Installation
+```bash
+sudo apt update && sudo apt install python3 python3-venv git -y
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/PiDNS.git
-   cd PiDNS
-   ```
+### 2. Clone the Repository
 
-2. **Run the installation script**
-   ```bash
-   ./scripts/install.sh
-   ```
+```bash
+git clone https://github.com/yourusername/PiDNS.git
+cd PiDNS
+```
 
-3. **Follow the prompts**
-   - Select your device type
-   - Select your container type
-   - Confirm the installation
+### 3. Configure Secure Credentials ✅
 
-4. **Access the dashboard**
-   - Open a web browser and navigate to `http://<pi-ip-address>:8080`
-   - Log in with the default username `admin` and password `password`
-   - Change the default password after logging in
+Set **strong** dashboard credentials before launching PiDNS. Weak defaults are blocked to keep your network safe.
 
-### Silent Installation
+```bash
+export PIDNS_USERNAME="choose-a-unique-username"
+export PIDNS_PASSWORD="use-a-strong-password-with-12+-characters"
+```
 
-For automated installations, you can use the silent mode:
+> 💡 **Tip:** Store these values securely (for example, in `/etc/environment` or a systemd override file) so they persist across reboots.
+
+### 4. Launch the Dashboard
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python app/app.py
+```
+
+The dashboard is now available at **http://<host-ip>:8080**. Log in with the credentials you configured in the previous step.
+
+## 🤖 Optional: Silent Installer
+
+Automate setup with the bundled script:
 
 ```bash
 ./scripts/install.sh --device pi-4 --container docker --silent
 ```
 
-## Screenshots
+## 🖼️ Dashboard Preview
 
-### Dashboard
-![Dashboard](https://github.com/yourusername/PiDNS/raw/main/docs/screenshots/dashboard.png)
+| Overview | Device List |
+| -------- | ----------- |
+| ![Dashboard Overview](https://github.com/yourusername/PiDNS/raw/main/docs/screenshots/dashboard.png) | ![Device Details](https://github.com/yourusername/PiDNS/raw/main/docs/screenshots/device-details.png) |
 
-### Device Details
-![Device Details](https://github.com/yourusername/PiDNS/raw/main/docs/screenshots/device-details.png)
+## 📚 Documentation & Support
 
-### Ad-blocking
-![Ad-blocking](https://github.com/yourusername/PiDNS/raw/main/docs/screenshots/ad-blocking.png)
+- 📘 [Comprehensive documentation](comprehensive_documentation.md)
+- 🛠️ [Installation script reference](installation_script_modification_plan.md)
+- 🧪 [Testing plan](testing_plan.md)
+- 💬 [GitHub Discussions](https://github.com/yourusername/PiDNS/discussions)
+- 🐞 [Issue tracker](https://github.com/yourusername/PiDNS/issues)
 
-## Documentation
+## 🤝 Contributing
 
-For detailed documentation, please see the [comprehensive documentation](comprehensive_documentation.md).
+Contributions are welcome! Please review the guidelines in `CONTRIBUTING.md` (coming soon) and open pull requests for enhancements or fixes.
 
-## Contributing
+## 🙌 Acknowledgements
 
-We welcome contributions! Please see our [contributing guidelines](CONTRIBUTING.md) for details.
+- 🧭 [dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) for the DNS/DHCP engine
+- 🌐 [Flask](https://flask.palletsprojects.com/) for the web framework
+- 🎨 [Bootstrap](https://getbootstrap.com/) for design inspiration
+- 🧩 The Raspberry Pi Foundation for the hardware we love
 
-## License
+## ⚖️ License
 
-PiDNS is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Support
-
-- **Documentation**: [comprehensive documentation](comprehensive_documentation.md)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/PiDNS/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/PiDNS/discussions)
-- **Community Forum**: [PiDNS Community Forum](https://forum.pidns.org/)
-
-## Acknowledgments
-
-- [dnsmasq](http://www.thekelleys.org.uk/dnsmasq/doc.html) for providing the DNS and DHCP server
-- [Flask](https://flask.palletsprojects.com/) for providing the web framework
-- [Bootstrap](https://getbootstrap.com/) for providing the UI framework
-- [jQuery](https://jquery.com/) for providing the JavaScript library
-- The Raspberry Pi Foundation for creating the Raspberry Pi
+Released under the [MIT License](LICENSE). Enjoy and stay secure! 🔐

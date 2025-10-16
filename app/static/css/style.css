@@ -45,12 +45,33 @@ header {
     margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border-color);
+    gap: 20px;
 }
 
-header h1 {
+.branding {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.branding-logo {
+    width: 64px;
+    height: 64px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.branding-text h1 {
     color: var(--primary-color);
     font-size: 24px;
-    font-weight: 600;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.tagline {
+    font-size: 12px;
+    color: var(--secondary-color);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .header-controls {
@@ -249,6 +270,15 @@ header h1 {
         flex-direction: column;
         gap: 15px;
         text-align: center;
+    }
+
+    .branding {
+        flex-direction: column;
+    }
+
+    .branding-logo {
+        width: 72px;
+        height: 72px;
     }
 
     .stats-grid {

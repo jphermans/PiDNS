@@ -29,21 +29,23 @@ class Config:
     DASHBOARD_TITLE = 'PiDNS Network Dashboard'
     REFRESH_INTERVAL = 30  # seconds
 
-    # Authentication
-    BASIC_AUTH_USERNAME = os.environ.get('PIDNS_USERNAME') or 'admin'
-    BASIC_AUTH_PASSWORD = os.environ.get('PIDNS_PASSWORD') or 'password'
+    # Authentication (must be provided via environment variables in production)
+    BASIC_AUTH_USERNAME = os.environ.get('PIDNS_USERNAME')
+    BASIC_AUTH_PASSWORD = os.environ.get('PIDNS_PASSWORD')
 
 class DevelopmentConfig(Config):
     """Development configuration"""
     DEBUG = True
     SECRET_KEY = 'dev-secret-key'
+    BASIC_AUTH_USERNAME = os.environ.get('PIDNS_USERNAME') or 'dev-admin'
+    BASIC_AUTH_PASSWORD = os.environ.get('PIDNS_PASSWORD') or 'dev-change-me-now!'
 
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
     SECRET_KEY = os.environ.get('SECRET_KEY')
-    if not SECRET_KEY:
-        raise ValueError("SECRET_KEY environment variable must be set in production")
+    BASIC_AUTH_USERNAME = os.environ.get('PIDNS_USERNAME')
+    BASIC_AUTH_PASSWORD = os.environ.get('PIDNS_PASSWORD')
 
 # Configuration mapping
 config = {
